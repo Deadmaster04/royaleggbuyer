@@ -1,0 +1,31 @@
+task.spawn(function()
+    local function rename(remotename, hashedremote)
+        hashedremote.Name = remotename
+    end
+-- Function to buy the royal_egg
+local function buyRoyalEgg()
+    local args = {
+        [1] = "pets",        -- Category: pets
+        [2] = "royal_egg",   -- Item ID: royal_egg
+        [3] = {
+            ["buy_count"] = 5 -- Buy one at a time
+        }
+    }
+
+    -- Invoke the server to buy the item
+    game:GetService("ReplicatedStorage").API.euBDQgaSVOTfQCL:InvokeServer(unpack(args))
+end
+
+-- Start buying process
+task.spawn(function()
+    local maxPurchases = 1000 -- Set the maximum number of purchases (adjust as needed)
+    local purchaseCount = 0
+
+    while purchaseCount < maxPurchases do
+        buyRoyalEgg() -- Call the function to buy the royal_egg
+        purchaseCount = purchaseCount + 1
+        wait(0.1) -- Small delay between purchases (adjust if needed)
+    end
+
+    print("Finished purchasing " .. purchaseCount .. " royal eggs.")
+end)
