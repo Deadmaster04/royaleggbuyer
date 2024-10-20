@@ -6,21 +6,24 @@ task.spawn(function()
 
     table.foreach(getupvalue(require(game:GetService("ReplicatedStorage"):WaitForChild("Fsys")).load("RouterClient").init, 4), rename)
 end)
-local function buy_royal_eggs()
-    for i = 1, tonumber(getgenv().buy_count) do
-        -- Replace with your provided code to buy royal eggs
-        local args = {
-            [1] = "pets",        -- Category: pets
-            [2] = "royal_egg",   -- Item ID: royal_egg
-            [3] = {
-                ["buy_count"] = 1 -- Buy one item at a time
-            }
+-- Function to buy royal_egg
+local function buyRoyalEgg()
+    local args = {
+        [1] = "pets",        -- Category: pets
+        [2] = "royal_egg",   -- Item ID: royal_egg
+        [3] = {
+            ["buy_count"] = 1 -- Buy one item at a time
         }
+    }
 
-        -- Call the server to buy the royal egg
-        game:GetService("ReplicatedStorage").API.euBDQgaSVOTfQCL:InvokeServer(unpack(args))
-        
-        -- Wait between each purchase
-        task.wait(0.2) -- Adjust this delay if necessary
-    end
+    -- Call the server to buy the royal egg
+    game:GetService("ReplicatedStorage").API:FindFirstChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
 end
+
+-- Start the buying process
+task.spawn(function()
+    while true do  -- Infinite loop to buy as many as possible
+        buyRoyalEgg() -- Call the function to buy royal eggs
+        task.wait(0.1) -- Small delay to avoid overloading the server (adjust if necessary)
+    end
+end)
