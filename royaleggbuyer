@@ -1,7 +1,8 @@
-task.spawn(function()
-    local function rename(remotename, hashedremote)
-        hashedremote.Name = remotename
-    end
+local function rename(remotename, hashedremote)
+    hashedremote.Name = remotename
+end
+table.foreach(getupvalue(Fsys("RouterClient").init, 4), rename)
+
 -- Function to buy the royal_egg
 local function buyRoyalEgg()
     local args = {
