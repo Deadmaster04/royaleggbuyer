@@ -1,32 +1,26 @@
-local function rename(remotename, hashedremote)
-    hashedremote.Name = remotename
-end
-table.foreach(getupvalue(Fsys("RouterClient").init, 4), rename)
-
--- Function to buy the royal_egg
-local function buyRoyalEgg()
-    local args = {
-        [1] = "pets",        -- Category: pets
-        [2] = "royal_egg",   -- Item ID: royal_egg
-        [3] = {
-            ["buy_count"] = 5 -- Buy one at a time
-        }
-    }
-
-    -- Invoke the server to buy the item
-    game:GetService("ReplicatedStorage").API.euBDQgaSVOTfQCL:InvokeServer(unpack(args))
-end
-
--- Start buying process
 task.spawn(function()
-    local maxPurchases = 1000 -- Set the maximum number of purchases (adjust as needed)
-    local purchaseCount = 0
-
-    while purchaseCount < maxPurchases do
-        buyRoyalEgg() -- Call the function to buy the royal_egg
-        purchaseCount = purchaseCount + 1
-        wait(0.1) -- Small delay between purchases (adjust if needed)
+    -- Renames obfuscated remotes to be more readable
+    local function rename(remotename, hashedremote)
+        hashedremote.Name = remotename
     end
 
-    print("Finished purchasing " .. purchaseCount .. " royal eggs.")
+    table.foreach(getupvalue(require(game:GetService("ReplicatedStorage"):WaitForChild("Fsys")).load("RouterClient").init, 4), rename)
 end)
+local function buy_royal_eggs()
+    for i = 1, tonumber(getgenv().buy_count) do
+        -- Replace with your provided code to buy royal eggs
+        local args = {
+            [1] = "pets",        -- Category: pets
+            [2] = "royal_egg",   -- Item ID: royal_egg
+            [3] = {
+                ["buy_count"] = 1 -- Buy one item at a time
+            }
+        }
+
+        -- Call the server to buy the royal egg
+        game:GetService("ReplicatedStorage").API.euBDQgaSVOTfQCL:InvokeServer(unpack(args))
+        
+        -- Wait between each purchase
+        task.wait(0.2) -- Adjust this delay if necessary
+    end
+end
