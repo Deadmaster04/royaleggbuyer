@@ -13,30 +13,40 @@ else
 print("patch rip")
 end
 local args = {
-	"gifts",
-	"smallgift",
-	{
-		buy_count = 1
-	}
+    "gifts",
+    "spring_2025_kaijunior_box",
+    {
+        buy_count = 1
+    }
 }
-game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+
+local ShopAPI = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem")
+
+while true do
+    local success, result = pcall(function()
+        return ShopAPI:InvokeServer(unpack(args))
+    end)
+    if not success or (result and result == false) then
+        break
+    end
+end
 task.wait(10)
-local function open_all_smallgifts()
+local function open_all_kaijunior_boxes()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
     local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
     local player = game:GetService("Players").LocalPlayer
 
-    -- Get your inventory and find all small gifts
+    -- Get your inventory and find all kaijunior boxes
     local player_inventory = Fsys("ClientData").get("inventory")
     local gifts = player_inventory.gifts
 
     local found = false
     for _, gift in pairs(gifts) do
-        if gift.id == "smallgift" then
+        if gift.id == "spring_2025_kaijunior_box" then
             found = true
             local giftId = gift.unique
-            print("Opening smallgift with unique ID:", giftId)
+            print("Opening kaijunior box with unique ID:", giftId)
 
             -- Equip the gift (required)
             API["ToolAPI/Equip"]:InvokeServer(
@@ -52,9 +62,9 @@ local function open_all_smallgifts()
     end
 
     if not found then
-        print("No small gifts found in inventory!")
+        print("No spring_2025_kaijunior_box found in inventory!")
     end
 end
 
 -- Run automatically when the script loads
-open_all_smallgifts()
+open_all_kaijunior_boxes()
