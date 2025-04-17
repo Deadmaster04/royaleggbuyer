@@ -14,7 +14,7 @@ print("patch rip")
 end
 local args = {
     "gifts",
-    "spring_2025_kaijunior_box",
+    "smallgift",
     {
         buy_count = 1
     }
@@ -43,7 +43,7 @@ local function open_all_kaijunior_boxes()
 
     local found = false
     for _, gift in pairs(gifts) do
-        if gift.id == "spring_2025_kaijunior_box" then
+        if gift.id == "smallgift" then
             found = true
             local giftId = gift.unique
             print("Opening kaijunior box with unique ID:", giftId)
