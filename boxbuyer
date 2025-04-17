@@ -11,7 +11,6 @@ if type(upvalueTable) == "table" then
     table.foreach(upvalueTable, rename)
 else
 print("patch rip")
-task.wait(10)
 end
 local args = {
     "gifts",
