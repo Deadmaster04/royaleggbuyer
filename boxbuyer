@@ -1,5 +1,5 @@
 loadstring(game:HttpGet(('https://raw.githubusercontent.com/ReQiuYTPL/hub/main/ReQiuYTPLHub.lua'),true))()
-task.wait(5)
+task.wait(10)
 for i = 1, 1000 do
     local args = {
         "gifts",
