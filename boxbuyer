@@ -32,7 +32,6 @@ end
 
 print("No more purchases possible!")
 
-task.wait(12)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
