@@ -35,7 +35,7 @@ local function open_all_smallgifts()
 
     local found = false
     for _, gift in pairs(gifts) do
-        if gift.id == "spring_2025_kaijunior_box" then
+        if gift.id == "smallgift" then
             found = true
             local giftId = gift.unique
             print("Opening smallgift with unique ID:", giftId)
