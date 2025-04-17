@@ -13,13 +13,25 @@ else
 print("patch rip")
 end
 local args = {
-"gifts",
-"smallgift",
-{
-buy_count = 100
+    "gifts",
+    "smallgift",
+    {
+        buy_count = 1
+    }
 }
-}
-game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+
+while true do
+    local success, result = pcall(function()
+        return game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+    end)
+    if not success or result == false then
+        break -- Stop if purchase fails
+    end
+    task.wait(0.1) -- Prevents flooding the server
+end
+
+print("No more purchases possible!")
+
 task.wait(12)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
