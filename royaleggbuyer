@@ -1,29 +1,60 @@
-task.spawn(function()
-    -- Renames obfuscated remotes to be more readable
-    local function rename(remotename, hashedremote)
-        hashedremote.Name = remotename
-    end
-
-    table.foreach(getupvalue(require(game:GetService("ReplicatedStorage"):WaitForChild("Fsys")).load("RouterClient").init, 4), rename)
-end)
--- Function to buy royal_egg
-local function buyRoyalEgg()
-    local args = {
-        [1] = "pets",        -- Category: pets
-        [2] = "royal_egg",   -- Item ID: royal_egg
-        [3] = {
-            ["buy_count"] = 1 -- Buy one item at a time
-        }
-    }
-
-    -- Call the server to buy the royal egg
-    game:GetService("ReplicatedStorage").API:FindFirstChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+local function rename(remotename, hashedremote)
+    hashedremote.Name = remotename
 end
 
--- Start the buying process
-task.spawn(function()
-    while true do  -- Infinite loop to buy as many as possible
-        buyRoyalEgg() -- Call the function to buy royal eggs
-        task.wait(0.1) -- Small delay to avoid overloading the server (adjust if necessary)
+local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
+
+local initFunction = require(AC_MODULE).init
+local upvalueTable = getupvalue(initFunction, 7)
+
+if type(upvalueTable) == "table" then
+    table.foreach(upvalueTable, rename)
+else
+print("patch rip")
+end
+local args = {
+	"gifts",
+	"smallgift",
+	{
+		buy_count = 1
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+task.wait(10)
+local function open_all_smallgifts()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local API = ReplicatedStorage.API
+    local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
+    local player = game:GetService("Players").LocalPlayer
+
+    -- Get your inventory and find all small gifts
+    local player_inventory = Fsys("ClientData").get("inventory")
+    local gifts = player_inventory.gifts
+
+    local found = false
+    for _, gift in pairs(gifts) do
+        if gift.id == "smallgift" then
+            found = true
+            local giftId = gift.unique
+            print("Opening smallgift with unique ID:", giftId)
+
+            -- Equip the gift (required)
+            API["ToolAPI/Equip"]:InvokeServer(
+                giftId,
+                {use_sound_delay = true, equip_as_last = false}
+            )
+            task.wait(0.2)
+
+            -- Open the gift
+            API["ShopAPI/OpenGift"]:InvokeServer(giftId)
+            task.wait(1) -- Wait between gifts to avoid issues
+        end
     end
-end)
+
+    if not found then
+        print("No small gifts found in inventory!")
+    end
+end
+
+-- Run automatically when the script loads
+open_all_smallgifts()
