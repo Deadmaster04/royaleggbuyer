@@ -1,136 +1,59 @@
-game:GetService('RunService').Stepped:Wait() -- Wait for services to be ready
-
-local humanoid = character:WaitForChild('Humanoid')
-local animator = humanoid:WaitForChild('Animator')
-local animationTrack = animator:LoadAnimation(animation)
-animationTrack:Play()
-
 local function rename(remotename, hashedremote)
     hashedremote.Name = remotename
 end
 
 local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
+
 local initFunction = require(AC_MODULE).init
 local upvalueTable = getupvalue(initFunction, 7)
 
 if type(upvalueTable) == "table" then
     table.foreach(upvalueTable, rename)
 else
-    print("Anti-cheat patch failed")
+print("patch rip")
 end
-
--- Enhanced inventory system
-local Fsys = require(game:GetService("ReplicatedStorage"):WaitForChild("Fsys")).load
-local function sync_inventory()
-    for _ = 1, 3 do  -- Triple refresh for reliability
-        Fsys("RouterClient").get("Inventory/UpdateInventory")({
-            force = true,
-            inventory_type = "gifts"
-        })
-        task.wait(0.2)
-    end
-end
-
--- Purchase system
 local args = {
-    "gifts",
-    "spring_2025_kaijunior_box",
-    {
-        buy_count = 1
-    }
+"gifts",
+"smallgift",
+{
+buy_count = 1
 }
-
-local ShopAPI = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem")
-
-print("Starting purchases...")
-while true do
-    local success, result = pcall(function()
-        return ShopAPI:InvokeServer(unpack(args))
-    end)
-    
-    if not success or (result and result == false) then
-        print("Purchase failed, stopping. Reason:", result)
-        break
-    end
-    print("Successfully purchased 1 box")
-    sync_inventory()
-    task.wait(0.5)
-end
-
--- Pre-opening verification
-print("Verifying inventory...")
-sync_inventory()
-task.wait(2)
-
-local function debug_inventory()
-    local inv = Fsys("ClientData").get("inventory").gifts or {}
-    print("Current gift inventory:")
-    for _, gift in pairs(inv) do
-        print("-", gift.id, "|", gift.unique)
-    end
-end
-
-debug_inventory()  -- Show what's actually in inventory
-
--- Modified opener with error handling
-local function open_all_kaijunior_boxes()
+}
+game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
+    local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
     local player = game:GetService("Players").LocalPlayer
 
-    local success, inventory = pcall(function()
-        return Fsys("ClientData").get("inventory")
-    end)
+    -- Get your inventory and find all small gifts
+    local player_inventory = Fsys("ClientData").get("inventory")
+    local gifts = player_inventory.gifts
 
-    if not success then
-        print("Inventory access failed:", inventory)
-        return
-    end
-
-    local gifts = inventory.gifts or {}
-    local opened = 0
-
+    local found = false
     for _, gift in pairs(gifts) do
-        if gift.id == "spring_2025_kaijunior_box" then
-            print("Attempting to open:", gift.unique)
-            
-            local equipSuccess = pcall(function()
-                API["ToolAPI/Equip"]:InvokeServer(
-                    gift.unique,
-                    {use_sound_delay = true, equip_as_last = false}
-                )
-            end)
-            
-            if not equipSuccess then
-                print("Equip failed for", gift.unique)
-                continue
-            end
-            
-            task.wait(0.5)  -- Increased equip delay
-            
-            local openSuccess, result = pcall(function()
-                return API["ShopAPI/OpenGift"]:InvokeServer(gift.unique)
-            end)
-            
-            if openSuccess then
-                print("Successfully opened", gift.unique)
-                opened += 1
-            else
-                print("Open failed:", result)
-            end
-            
-            sync_inventory()
-            task.wait(1)  -- Conservative delay
+        if gift.id == "smallgift" then
+            found = true
+            local giftId = gift.unique
+            print("Opening smallgift with unique ID:", giftId)
+
+            -- Equip the gift (required)
+            API["ToolAPI/Equip"]:InvokeServer(
+                giftId,
+                {use_sound_delay = true, equip_as_last = false}
+            )
+            task.wait(0.2)
+
+            -- Open the gift
+            API["ShopAPI/OpenGift"]:InvokeServer(giftId)
+            task.wait(1) -- Wait between gifts to avoid issues
         end
     end
 
-    print("Total opened:", opened)
+    if not found then
+        print("No small gifts found in inventory!")
+    end
 end
 
--- Final execution with protection
-local success, err = pcall(open_all_kaijunior_boxes)
-if not success then
-    print("Critical opener error:", err)
-end
-
-print("Process completed")
+-- Run automatically when the script loads
+open_all_smallgifts()
