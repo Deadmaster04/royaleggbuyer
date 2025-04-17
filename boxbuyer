@@ -31,7 +31,6 @@ while true do
         break
     end
 end
-task.wait(10)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
