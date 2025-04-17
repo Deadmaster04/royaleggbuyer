@@ -1,3 +1,4 @@
+task.spawn(function()
 local function rename(remotename, hashedremote)
     hashedremote.Name = remotename
 end
