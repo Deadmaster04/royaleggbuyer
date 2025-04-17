@@ -31,13 +31,13 @@ while true do
     end
 end
 task.wait(10)
-local function open_all_kaijunior_boxes()
+local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
     local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
     local player = game:GetService("Players").LocalPlayer
 
-    -- Get your inventory and find all kaijunior boxes
+    -- Get your inventory and find all small gifts
     local player_inventory = Fsys("ClientData").get("inventory")
     local gifts = player_inventory.gifts
 
@@ -46,7 +46,7 @@ local function open_all_kaijunior_boxes()
         if gift.id == "smallgift" then
             found = true
             local giftId = gift.unique
-            print("Opening kaijunior box with unique ID:", giftId)
+            print("Opening smallgift with unique ID:", giftId)
 
             -- Equip the gift (required)
             API["ToolAPI/Equip"]:InvokeServer(
@@ -62,9 +62,10 @@ local function open_all_kaijunior_boxes()
     end
 
     if not found then
-        print("No spring_2025_kaijunior_box found in inventory!")
+        print("No small gifts found in inventory!")
     end
 end
 
 -- Run automatically when the script loads
-open_all_kaijunior_boxes()
+open_all_smallgifts()
+
