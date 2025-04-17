@@ -1,3 +1,17 @@
+local function rename(remotename, hashedremote)
+    hashedremote.Name = remotename
+end
+
+local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
+
+local initFunction = require(AC_MODULE).init
+local upvalueTable = getupvalue(initFunction, 7)
+
+if type(upvalueTable) == "table" then
+    table.foreach(upvalueTable, rename)
+else
+print("patch rip")
+end
 loadstring(game:HttpGet(('https://raw.githubusercontent.com/ReQiuYTPL/hub/main/ReQiuYTPLHub.lua'),true))()
 task.wait(10)
 for i = 1, 1000 do
