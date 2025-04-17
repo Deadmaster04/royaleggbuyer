@@ -16,11 +16,11 @@ local args = {
 "gifts",
 "smallgift",
 {
-buy_count = 1000
+buy_count = 100
 }
 }
 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
-task.wait(10)
+task.wait(12)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
