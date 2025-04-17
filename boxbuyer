@@ -12,15 +12,17 @@ if type(upvalueTable) == "table" then
 else
 print("patch rip")
 end
-local args = {
-"gifts",
-"spring_2025_kaijunior_box",
-{
-buy_count = 1
-}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
-task.wait(12)
+for i = 1, 1000 do
+    local args = {
+        "gifts",
+        "smallgift",
+        {
+            buy_count = 1
+        }
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+end
+
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
