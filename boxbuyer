@@ -1,4 +1,3 @@
-
 local function rename(remotename, hashedremote)
     hashedremote.Name = remotename
 end
