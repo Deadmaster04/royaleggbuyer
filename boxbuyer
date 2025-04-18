@@ -1,16 +1,27 @@
 getgenv().hub_key = "ddefe568f4db2779d834b6cb6656f8ed"
 loadstring(game:HttpGet("https://nb0.xyz/scripts/2G_POTMACHINE2.lua"))()
-wait(10)
+wait(15)
 
 local args = {
-"gifts",
-"smallgift",
-{
-buy_count = 500
+    "gifts",
+    "spring_2025_kaijunior_box",
+    {
+        buy_count = 1
+    }
 }
-}
-game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
-wait(20)
+
+local ShopAPI = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem")
+
+while true do
+    local success, result = pcall(function()
+        return ShopAPI:InvokeServer(unpack(args))
+    end)
+    if not success or (result and result == false) then
+        break
+    end
+end
+
+wait(30)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
