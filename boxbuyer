@@ -21,7 +21,7 @@ local args = {
 	}
 }
 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack(args))
-
+end
 task.wait(10)
 local args = {
 "gifts",
