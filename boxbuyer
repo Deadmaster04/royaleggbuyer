@@ -1,15 +1,15 @@
 
-loadstring(game:HttpGet(('https://raw.githubusercontent.com/ReQiuYTPL/hub/main/ReQiuYTPLHub.lua'),true))()
+script_key="bwTErkAbeoLWrnQKGGwuJmaOkWfxLwwg";
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/c29af06acdb7a80fb239415fd322efe9.lua"))()
 task.wait(10)
-for i = 1, 1000 do
-    local args = {
-        "gifts",
-        "smallgift",
-        {
-            buy_count = 1
-        }
-    }
-    game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+local args = {
+"gifts",
+"smallgift",
+{
+buy_count = 1
+}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
 end
 task.wait(30)
 local function open_all_smallgifts()
