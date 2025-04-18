@@ -1,11 +1,33 @@
-script_key="bwTErkAbeoLWrnQKGGwuJmaOkWfxLwwg";
-loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/c29af06acdb7a80fb239415fd322efe9.lua"))()
+
+local function rename(remotename, hashedremote)
+    hashedremote.Name = remotename
+end
+
+local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
+
+local initFunction = require(AC_MODULE).init
+local upvalueTable = getupvalue(initFunction, 7)
+
+if type(upvalueTable) == "table" then
+    table.foreach(upvalueTable, rename)
+else
+print("patch rip")
+end
+local args = {
+	"Parents",
+	{
+		source_for_logging = "intro_sequence",
+		dont_enter_location = true
+	}
+}
+game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("TeamAPI/ChooseTeam"):InvokeServer(unpack(args))
+
 task.wait(10)
 local args = {
 "gifts",
 "smallgift",
 {
-buy_count = 1
+buy_count = 1000
 }
 }
 game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
