@@ -2,22 +2,42 @@
 getgenv().hub_key = "ddefe568f4db2779d834b6cb6656f8ed"
 loadstring(game:HttpGet("https://nb0.xyz/scripts/2G_POTMACHINE2.lua"))()
 wait(15)
-local args = {
-    "gifts",
-    "spring_2025_kaijunior_box",
-    {
-        buy_count = 1
-    }
-}
+local function open_all_smallgifts()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local API = ReplicatedStorage.API
+    local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
+    local player = game:GetService("Players").LocalPlayer
 
-local ShopAPI = game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem")
+    -- Get your inventory and find all small gifts
+    local player_inventory = Fsys("ClientData").get("inventory")
+    local gifts = player_inventory.gifts
 
-while true do
-    local success, result = pcall(function()
-        return ShopAPI:InvokeServer(unpack(args))
-    end)
-    if not success or (result and result == false) then
-        break
+    local found = false
+    for _, gift in pairs(gifts) do
+        if gift.id == "spring_2025_kaijunior_box" then
+            found = true
+            local giftId = gift.unique
+            print("Opening smallgift with unique ID:", giftId)
+
+            -- Equip the gift (required)
+            API["ToolAPI/Equip"]:InvokeServer(
+                giftId,
+                {use_sound_delay = true, equip_as_last = false}
+            )
+            task.wait(0.2)
+
+            -- Open the gift
+            API["ShopAPI/OpenGift"]:InvokeServer(giftId)
+            task.wait(1) -- Wait between gifts to avoid issues
+        end
+    end
+
+    if not found then
+        print("No small gifts found in inventory!")
     end
 end
+
+-- Run automatically when the script loads
+open_all_smallgifts()
+
 
