@@ -1,73 +1,61 @@
+-- Get references
 local houseInteriors = workspace:FindFirstChild("HouseInteriors")
-if not houseInteriors then
-    warn("HouseInteriors folder not found!")
-    return
-end
+if not houseInteriors then warn("HouseInteriors folder not found!") return end
 
 local sourceFolder = houseInteriors:FindFirstChild("furniture")
-if not sourceFolder then
-    warn("furniture folder not found!")
-    return
-end
+if not sourceFolder then warn("furniture folder not found!") return end
 
 local blueprint = houseInteriors:FindFirstChild("blueprint")
-if not blueprint then
-    warn("blueprint folder not found!")
-    return
+if not blueprint then warn("blueprint folder not found!") return end
+
+-- Print all children in blueprint for debugging
+print("Children in blueprint:")
+for _, obj in ipairs(blueprint:GetChildren()) do
+    print(" -", obj.Name, "[", obj.ClassName, "]")
 end
 
-local myHouse = blueprint:FindFirstChild("ScarletShifter8835")
-if not myHouse then
-    warn("Your house was not found!")
-    return
-end
+-- Change this to match your actual house's name (copy from the printout above)
+local houseName = "ScarletShifter8835"
 
-local startPosition = Vector3.new(0, 5, 0)
+-- Wait for your house to appear (up to 10 seconds)
+local myHouse = blueprint:FindFirstChild(houseName) or blueprint:WaitForChild(houseName, 10)
+if not myHouse then warn("Your house was not found! Check the name above.") return end
+
+-- Get your house's position (pivot)
+local housePivot = myHouse:GetPivot().Position
+print("House pivot position:", housePivot)
+
+-- Change this to your house's pivot position if you want to spread items out inside your house
+local startPosition = housePivot
 local offset = Vector3.new(6, 0, 0)
 local i = 0
 
--- Recursively find all Models and Parts in all subfolders
-local function findAllItems(folder, items)
+-- Recursively find all Models in all subfolders and move them
+local function moveAllModels(folder)
     for _, obj in ipairs(folder:GetChildren()) do
-        if obj:IsA("Model") or obj:IsA("BasePart") then
-            table.insert(items, obj)
-        elseif obj:IsA("Folder") then
-            findAllItems(obj, items)
-        end
-    end
-end
-
-local itemsToMove = {}
-findAllItems(sourceFolder, itemsToMove)
-
-if #itemsToMove == 0 then
-    warn("No models or parts found in furniture folder or its subfolders!")
-    return
-end
-
-for _, item in ipairs(itemsToMove) do
-    item.Parent = myHouse
-    if item:IsA("Model") then
-        if not item.PrimaryPart then
-            local primary = item:FindFirstChildWhichIsA("BasePart")
-            if primary then
-                item.PrimaryPart = primary
+        if obj:IsA("Model") then
+            obj.Parent = myHouse
+            -- Set PrimaryPart if not set
+            if not obj.PrimaryPart then
+                local primary = obj:FindFirstChildWhichIsA("BasePart")
+                if primary then
+                    obj.PrimaryPart = primary
+                end
             end
+            -- Place the item at a new position
+            if obj.PrimaryPart then
+                obj:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
+                obj.PrimaryPart.Anchored = true
+                print("Placed model", obj.Name, "at", (startPosition + offset * i))
+                i = i + 1
+            else
+                print("Could not place model", obj.Name, "because it has no PrimaryPart")
+            end
+        elseif obj:IsA("Folder") then
+            moveAllModels(obj)
         end
-        if item.PrimaryPart then
-            item:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
-            item.PrimaryPart.Anchored = true
-            print("Placed model", item.Name, "at", (startPosition + offset * i))
-            i = i + 1
-        else
-            print("Could not place model", item.Name, "because it has no PrimaryPart")
-        end
-    elseif item:IsA("BasePart") then
-        item.Position = startPosition + offset * i
-        item.Anchored = true
-        print("Placed part", item.Name, "at", (startPosition + offset * i))
-        i = i + 1
     end
 end
 
-print("Placed", #itemsToMove, "items in your house!")
+moveAllModels(sourceFolder)
+print("Done moving all models into your house!")
