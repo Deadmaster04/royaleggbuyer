@@ -42,7 +42,7 @@ local modelsToMove = {}
 findAllModels(sourceFolder, modelsToMove)
 
 if #modelsToMove == 0 then
-    warn("No models found in furniture folder!")
+    warn("No models found in furniture folder or its subfolders!")
     return
 end
 
@@ -69,3 +69,4 @@ for _, item in ipairs(modelsToMove) do
 end
 
 print("Placed", #modelsToMove, "furniture items in your house!")
+
