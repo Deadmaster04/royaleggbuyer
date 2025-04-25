@@ -1,145 +1,71 @@
--- Furniture Copier Script for Roblox
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
-local FURNITURE_FOLDER_NAME = "Furniture"
-local CHECK_INTERVAL = 1
-
-local DownloadClient
-pcall(function()
-    DownloadClient = require(ReplicatedStorage:WaitForChild("ClientModules"):WaitForChild("Core"):WaitForChild("DownloadClient"))
-end)
-
-local currentHouse = nil
-local furnitureData = {}
-local isProcessing = false
-
-local function detectHouse()
-    local character = LocalPlayer.Character
-    if not character then return nil end
-    local rootPart = character:FindFirstChild("HumanoidRootPart")
-    if not rootPart then return nil end
-
-    for _, obj in pairs(workspace:GetChildren()) do
-        -- Only use Models for GetPivot
-        if obj:IsA("Model") and (obj:FindFirstChild(FURNITURE_FOLDER_NAME) or obj.Name:match("[Hh]ouse")) then
-            local ok, pivot = pcall(function() return obj:GetPivot().Position end)
-            if ok and pivot then
-                local distance = (rootPart.Position - pivot).Magnitude
-                if distance < 100 then
-                    return obj
-                end
-            end
-        end
-    end
-    return nil
+local houseInteriors = workspace:FindFirstChild("HouseInteriors")
+if not houseInteriors then
+    warn("HouseInteriors folder not found!")
+    return
 end
 
-local function collectFurnitureData(house)
-    local furniture = {}
-    local furnitureFolder = house:FindFirstChild(FURNITURE_FOLDER_NAME)
-    if not furnitureFolder then
-        for _, obj in pairs(house:GetDescendants()) do
-            if obj.Name == FURNITURE_FOLDER_NAME then
-                furnitureFolder = obj
-                break
-            end
-        end
-    end
-    if not furnitureFolder then
-        print("Furniture folder not found in house")
-        return furniture
-    end
-    for _, item in pairs(furnitureFolder:GetDescendants()) do
-        if item:IsA("Model") then
-            local id = item:GetAttribute("ID") or 
-                      (item:FindFirstChild("ID") and item.ID.Value) or
-                       item:GetAttribute("ModelId")
-            if id then
-                table.insert(furniture, {
-                    id = id,
-                    position = item:GetPivot().Position,
-                    rotation = item:GetPivot().Rotation
-                })
-            end
-        end
-    end
-    return furniture
+local sourceFolder = houseInteriors:FindFirstChild("furniture")
+if not sourceFolder then
+    warn("furniture folder not found!")
+    return
 end
 
-local function copyToMyHouse(data)
-    local myHouse = nil
-    for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Model") and obj.Name:match(LocalPlayer.Name) and obj.Name:match("[Hh]ouse") then
-            myHouse = obj
-            break
-        end
-    end
-    if not myHouse then
-        print("Could not find your house")
-        return false
-    end
-    if not DownloadClient or not DownloadClient.download_with_retry then
-        print("Download function not available")
-        return false
-    end
-    local count = 0
-    for _, item in pairs(data) do
-        pcall(function()
-            local model = DownloadClient.download_with_retry(item.id)
-            if model then
-                model:PivotTo(CFrame.new(item.position) * CFrame.fromEulerAnglesXYZ(item.rotation.X, item.rotation.Y, item.rotation.Z))
-                model.Parent = myHouse:FindFirstChild(FURNITURE_FOLDER_NAME)
-                count = count + 1
-            end
-        end)
-        task.wait(0.1)
-    end
-    print("Copied " .. count .. " furniture items")
-    return true
+local blueprint = houseInteriors:FindFirstChild("blueprint")
+if not blueprint then
+    warn("blueprint folder not found!")
+    return
 end
 
-local function startDetection()
-    return RunService.Heartbeat:Connect(function()
-        if isProcessing then return end
-        if tick() % CHECK_INTERVAL < 0.1 then
-            local house = detectHouse()
-            if house and house ~= currentHouse then
-                currentHouse = house
-                print("Entered house: " .. house.Name)
-                isProcessing = true
-                task.delay(2, function()
-                    furnitureData = collectFurnitureData(house)
-                    print("Found " .. #furnitureData .. " furniture items")
-                    isProcessing = false
-                end)
-            elseif not house and currentHouse then
-                print("Left house")
-                currentHouse = nil
-            end
-        end
-    end)
+local myHouse = blueprint:FindFirstChild("ScarletShifter8835")
+if not myHouse then
+    warn("Your house was not found!")
+    return
 end
 
-local function setupCommand()
-    LocalPlayer.Chatted:Connect(function(message)
-        if message:lower() == "/copyfurniture" then
-            if #furnitureData > 0 then
-                print("Copying furniture...")
-                copyToMyHouse(furnitureData)
-            else
-                print("No furniture data available. Enter a house first.")
-            end
+-- Set this to your house's position (use GetPivot().Position if needed)
+local startPosition = Vector3.new(0, 5, 0)
+local offset = Vector3.new(6, 0, 0)
+local i = 0
+
+-- Recursively find all Models in all subfolders
+local function findAllModels(folder, models)
+    for _, obj in ipairs(folder:GetChildren()) do
+        if obj:IsA("Model") then
+            table.insert(models, obj)
+        elseif obj:IsA("Folder") then
+            findAllModels(obj, models)
         end
-    end)
+    end
 end
 
-startDetection()
-setupCommand()
-print("Furniture copier loaded! Type /copyfurniture to copy furniture.")
+local modelsToMove = {}
+findAllModels(sourceFolder, modelsToMove)
 
+if #modelsToMove == 0 then
+    warn("No models found in furniture folder!")
+    return
+end
 
+for _, item in ipairs(modelsToMove) do
+    item.Parent = myHouse
+    -- Set PrimaryPart if not set
+    if not item.PrimaryPart then
+        local primary = item:FindFirstChildWhichIsA("BasePart")
+        if primary then
+            item.PrimaryPart = primary
+        else
+            print("No BasePart found in", item.Name)
+        end
+    end
+    -- Place the item at a new position
+    if item.PrimaryPart then
+        item:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
+        item.PrimaryPart.Anchored = true
+        print("Placed", item.Name, "at", (startPosition + offset * i))
+        i = i + 1
+    else
+        print("Could not place", item.Name, "because it has no PrimaryPart")
+    end
+end
 
+print("Placed", #modelsToMove, "furniture items in your house!")
