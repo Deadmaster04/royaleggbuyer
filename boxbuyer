@@ -1,26 +1,28 @@
--- Set these to the correct names:
-local sourceFurnitureRoot = workspace.HouseInteriors.furniture:FindFirstChild("iuRMUykChxY")
-local destinationHouseName = "YOUR_HOUSE_NAME" -- Change to your actual house model name
+-- ==== CONFIGURE THESE TWO NAMES ====
+local sourceFolderName = "iuRMUykChxY" -- The folder under 'furniture' (from your screenshot)
+local destinationHouseName = "ScarletShifter8835" -- Your house model in 'blueprint'
+-- ===================================
 
+local houseInteriors = workspace:FindFirstChild("HouseInteriors")
+if not houseInteriors then error("HouseInteriors folder not found!") end
+
+local sourceRoot = houseInteriors:FindFirstChild("furniture")
+if not sourceRoot then error("furniture folder not found!") end
+
+local sourceFurnitureRoot = sourceRoot:FindFirstChild(sourceFolderName)
 if not sourceFurnitureRoot then
-    warn("Source furniture root not found!")
-    return
+    error("Source furniture root '"..sourceFolderName.."' not found! Children are: " .. table.concat((function() local t={} for _,v in ipairs(sourceRoot:GetChildren()) do table.insert(t, v.Name) end; return t end)(), ", "))
 end
 
--- Find your house model
-local blueprint = workspace.HouseInteriors:FindFirstChild("blueprint")
-if not blueprint then
-    warn("blueprint folder not found!")
-    return
-end
+local blueprint = houseInteriors:FindFirstChild("blueprint")
+if not blueprint then error("blueprint folder not found!") end
 
 local destinationHouse = blueprint:FindFirstChild(destinationHouseName)
 if not destinationHouse then
-    warn("Destination house not found!")
-    return
+    error("Destination house '"..destinationHouseName.."' not found! Children are: " .. table.concat((function() local t={} for _,v in ipairs(blueprint:GetChildren()) do table.insert(t, v.Name) end; return t end)(), ", "))
 end
 
--- Find all furniture models in all nested f-# folders
+-- Recursively collect all models
 local function collectFurnitureModels(folder, models)
     for _, obj in ipairs(folder:GetChildren()) do
         if obj:IsA("Model") then
@@ -35,8 +37,7 @@ local modelsToCopy = {}
 collectFurnitureModels(sourceFurnitureRoot, modelsToCopy)
 
 if #modelsToCopy == 0 then
-    warn("No furniture models found to copy!")
-    return
+    error("No furniture models found to copy! (Check if the folders actually contain Models)")
 end
 
 -- Place them in a row in your house
@@ -63,4 +64,4 @@ for _, model in ipairs(modelsToCopy) do
     end
 end
 
-print("Copied", #modelsToCopy, "furniture models from iuRMUykChxY to", destinationHouseName)
+print("Copied", #modelsToCopy, "furniture models from", sourceFolderName, "to", destinationHouseName)
