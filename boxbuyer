@@ -1,61 +1,63 @@
--- Get references
+-- Set these to the actual names of the source and destination house models:
+local sourceHouseName = "iuRMUykChxY" -- The house you want to copy FROM
+local destinationHouseName = "ScarletShifter8835" -- Your house (copy TO)
+
 local houseInteriors = workspace:FindFirstChild("HouseInteriors")
 if not houseInteriors then warn("HouseInteriors folder not found!") return end
-
-local sourceFolder = houseInteriors:FindFirstChild("furniture")
-if not sourceFolder then warn("furniture folder not found!") return end
 
 local blueprint = houseInteriors:FindFirstChild("blueprint")
 if not blueprint then warn("blueprint folder not found!") return end
 
--- Print all children in blueprint for debugging
-print("Children in blueprint:")
-for _, obj in ipairs(blueprint:GetChildren()) do
-    print(" -", obj.Name, "[", obj.ClassName, "]")
-end
+local sourceHouse = blueprint:FindFirstChild(sourceHouseName)
+if not sourceHouse then warn("Source house not found!") return end
 
--- Change this to match your actual house's name (copy from the printout above)
-local houseName = "ScarletShifter8835"
+local destinationHouse = blueprint:FindFirstChild(destinationHouseName)
+if not destinationHouse then warn("Destination house not found!") return end
 
--- Wait for your house to appear (up to 10 seconds)
-local myHouse = blueprint:FindFirstChild(houseName) or blueprint:WaitForChild(houseName, 10)
-if not myHouse then warn("Your house was not found! Check the name above.") return end
-
--- Get your house's position (pivot)
-local housePivot = myHouse:GetPivot().Position
-print("House pivot position:", housePivot)
-
--- Change this to your house's pivot position if you want to spread items out inside your house
-local startPosition = housePivot
+-- We'll spread out the furniture in the destination house
+local startPosition = destinationHouse:GetPivot().Position
 local offset = Vector3.new(6, 0, 0)
 local i = 0
 
--- Recursively find all Models in all subfolders and move them
-local function moveAllModels(folder)
+-- Recursive function to find all Models inside a folder
+local function findAllModels(folder, models)
     for _, obj in ipairs(folder:GetChildren()) do
         if obj:IsA("Model") then
-            obj.Parent = myHouse
-            -- Set PrimaryPart if not set
-            if not obj.PrimaryPart then
-                local primary = obj:FindFirstChildWhichIsA("BasePart")
-                if primary then
-                    obj.PrimaryPart = primary
-                end
-            end
-            -- Place the item at a new position
-            if obj.PrimaryPart then
-                obj:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
-                obj.PrimaryPart.Anchored = true
-                print("Placed model", obj.Name, "at", (startPosition + offset * i))
-                i = i + 1
-            else
-                print("Could not place model", obj.Name, "because it has no PrimaryPart")
-            end
+            table.insert(models, obj)
         elseif obj:IsA("Folder") then
-            moveAllModels(obj)
+            findAllModels(obj, models)
         end
     end
 end
 
-moveAllModels(sourceFolder)
-print("Done moving all models into your house!")
+-- Find all models in the source house
+local modelsToCopy = {}
+findAllModels(sourceHouse, modelsToCopy)
+
+if #modelsToCopy == 0 then
+    warn("No models found in the source house!")
+    return
+end
+
+for _, model in ipairs(modelsToCopy) do
+    local clone = model:Clone()
+    clone.Parent = destinationHouse
+    -- Set PrimaryPart if not set
+    if not clone.PrimaryPart then
+        local primary = clone:FindFirstChildWhichIsA("BasePart")
+        if primary then
+            clone.PrimaryPart = primary
+        end
+    end
+    -- Place the clone at a new position
+    if clone.PrimaryPart then
+        clone:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
+        clone.PrimaryPart.Anchored = true
+        print("Placed cloned model", clone.Name, "at", (startPosition + offset * i))
+        i = i + 1
+    else
+        print("Could not place cloned model", clone.Name, "because it has no PrimaryPart")
+    end
+end
+
+print("Copied", #modelsToCopy, "models from", sourceHouseName, "to", destinationHouseName)
