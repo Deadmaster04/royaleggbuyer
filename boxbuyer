@@ -22,51 +22,52 @@ if not myHouse then
     return
 end
 
--- Set this to your house's position (use GetPivot().Position if needed)
 local startPosition = Vector3.new(0, 5, 0)
 local offset = Vector3.new(6, 0, 0)
 local i = 0
 
--- Recursively find all Models in all subfolders
-local function findAllModels(folder, models)
+-- Recursively find all Models and Parts in all subfolders
+local function findAllItems(folder, items)
     for _, obj in ipairs(folder:GetChildren()) do
-        if obj:IsA("Model") then
-            table.insert(models, obj)
+        if obj:IsA("Model") or obj:IsA("BasePart") then
+            table.insert(items, obj)
         elseif obj:IsA("Folder") then
-            findAllModels(obj, models)
+            findAllItems(obj, items)
         end
     end
 end
 
-local modelsToMove = {}
-findAllModels(sourceFolder, modelsToMove)
+local itemsToMove = {}
+findAllItems(sourceFolder, itemsToMove)
 
-if #modelsToMove == 0 then
-    warn("No models found in furniture folder or its subfolders!")
+if #itemsToMove == 0 then
+    warn("No models or parts found in furniture folder or its subfolders!")
     return
 end
 
-for _, item in ipairs(modelsToMove) do
+for _, item in ipairs(itemsToMove) do
     item.Parent = myHouse
-    -- Set PrimaryPart if not set
-    if not item.PrimaryPart then
-        local primary = item:FindFirstChildWhichIsA("BasePart")
-        if primary then
-            item.PrimaryPart = primary
-        else
-            print("No BasePart found in", item.Name)
+    if item:IsA("Model") then
+        if not item.PrimaryPart then
+            local primary = item:FindFirstChildWhichIsA("BasePart")
+            if primary then
+                item.PrimaryPart = primary
+            end
         end
-    end
-    -- Place the item at a new position
-    if item.PrimaryPart then
-        item:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
-        item.PrimaryPart.Anchored = true
-        print("Placed", item.Name, "at", (startPosition + offset * i))
+        if item.PrimaryPart then
+            item:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
+            item.PrimaryPart.Anchored = true
+            print("Placed model", item.Name, "at", (startPosition + offset * i))
+            i = i + 1
+        else
+            print("Could not place model", item.Name, "because it has no PrimaryPart")
+        end
+    elseif item:IsA("BasePart") then
+        item.Position = startPosition + offset * i
+        item.Anchored = true
+        print("Placed part", item.Name, "at", (startPosition + offset * i))
         i = i + 1
-    else
-        print("Could not place", item.Name, "because it has no PrimaryPart")
     end
 end
 
-print("Placed", #modelsToMove, "furniture items in your house!")
-
+print("Placed", #itemsToMove, "items in your house!")
