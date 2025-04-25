@@ -23,14 +23,25 @@ local function detectHouse()
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return nil end
     for _, obj in pairs(workspace:GetChildren()) do
-        if (obj:IsA("Model") or obj:IsA("Folder")) and 
-           (obj:FindFirstChild(FURNITURE_FOLDER_NAME) or obj.Name:match("[Hh]ouse")) then
-            local distance = (rootPart.Position - obj:GetPivot().Position).Magnitude
-            if distance < 100 then
-                return obj
-            end
+    if (obj:IsA("Model") or obj:IsA("Folder")) and 
+       (obj:FindFirstChild(FURNITURE_FOLDER_NAME) or obj.Name:match("[Hh]ouse")) then
+        local objPosition
+        if obj:IsA("Model") then
+            objPosition = obj:GetPivot().Position
+        elseif obj:IsA("Folder") and #obj:GetChildren() > 0 and obj:GetChildren()[1]:IsA("BasePart") then
+            -- Use the first BasePart's position in the folder as a fallback
+            objPosition = obj:GetChildren()[1].Position
+        else
+            -- Skip folders with no positionable children
+            continue
+        end
+        local distance = (rootPart.Position - objPosition).Magnitude
+        if distance < 100 then
+            return obj
         end
     end
+end
+
     return nil
 end
 
