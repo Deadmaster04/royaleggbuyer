@@ -1,67 +1,15 @@
--- ==== CONFIGURE THESE TWO NAMES ====
-local sourceFolderName = "iuRMUykChxY" -- The folder under 'furniture' (from your screenshot)
-local destinationHouseName = "ScarletShifter8835" -- Your house model in 'blueprint'
--- ===================================
-
-local houseInteriors = workspace:FindFirstChild("HouseInteriors")
-if not houseInteriors then error("HouseInteriors folder not found!") end
-
-local sourceRoot = houseInteriors:FindFirstChild("furniture")
-if not sourceRoot then error("furniture folder not found!") end
-
-local sourceFurnitureRoot = sourceRoot:FindFirstChild(sourceFolderName)
-if not sourceFurnitureRoot then
-    error("Source furniture root '"..sourceFolderName.."' not found! Children are: " .. table.concat((function() local t={} for _,v in ipairs(sourceRoot:GetChildren()) do table.insert(t, v.Name) end; return t end)(), ", "))
+local function rename(remotename, hashedremote)
+    hashedremote.Name = remotename
 end
 
-local blueprint = houseInteriors:FindFirstChild("blueprint")
-if not blueprint then error("blueprint folder not found!") end
+local AC_MODULE = game:GetService("ReplicatedStorage").ClientModules.Core.RouterClient.RouterClient
 
-local destinationHouse = blueprint:FindFirstChild(destinationHouseName)
-if not destinationHouse then
-    error("Destination house '"..destinationHouseName.."' not found! Children are: " .. table.concat((function() local t={} for _,v in ipairs(blueprint:GetChildren()) do table.insert(t, v.Name) end; return t end)(), ", "))
+local initFunction = require(AC_MODULE).init
+local upvalueTable = getupvalue(initFunction, 7)
+
+if type(upvalueTable) == "table" then
+    table.foreach(upvalueTable, rename)
+else
+print("patch rip")
 end
-
--- Recursively collect all models
-local function collectFurnitureModels(folder, models)
-    for _, obj in ipairs(folder:GetChildren()) do
-        if obj:IsA("Model") then
-            table.insert(models, obj)
-        elseif obj:IsA("Folder") then
-            collectFurnitureModels(obj, models)
-        end
-    end
-end
-
-local modelsToCopy = {}
-collectFurnitureModels(sourceFurnitureRoot, modelsToCopy)
-
-if #modelsToCopy == 0 then
-    error("No furniture models found to copy! (Check if the folders actually contain Models)")
-end
-
--- Place them in a row in your house
-local startPosition = destinationHouse:GetPivot().Position
-local offset = Vector3.new(6, 0, 0)
-local i = 0
-
-for _, model in ipairs(modelsToCopy) do
-    local clone = model:Clone()
-    clone.Parent = destinationHouse
-    if not clone.PrimaryPart then
-        local primary = clone:FindFirstChildWhichIsA("BasePart")
-        if primary then
-            clone.PrimaryPart = primary
-        end
-    end
-    if clone.PrimaryPart then
-        clone:SetPrimaryPartCFrame(CFrame.new(startPosition + offset * i))
-        clone.PrimaryPart.Anchored = true
-        print("Placed furniture:", clone.Name, "at", (startPosition + offset * i))
-        i = i + 1
-    else
-        print("Could not place", clone.Name, "because it has no PrimaryPart")
-    end
-end
-
-print("Copied", #modelsToCopy, "furniture models from", sourceFolderName, "to", destinationHouseName)
+task.wait(20)
