@@ -12,4 +12,21 @@ if type(upvalueTable) == "table" then
 else
 print("patch rip")
 end
-task.wait(20)
+task.wait(10)
+while true do
+    local args = {
+        "gifts",
+        "gibbon_2025_standard_box",
+        {
+            buy_count = 50
+        }
+    }
+    local success, result = pcall(function()
+        return game:GetService("ReplicatedStorage"):WaitForChild("API"):WaitForChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+    end)
+    if not success or (result and result == false) then
+        -- Purchase failed, likely out of funds or hit a limit, so break the loop
+        break
+    end
+    wait(0.2) -- Small delay to avoid spamming the server
+end
