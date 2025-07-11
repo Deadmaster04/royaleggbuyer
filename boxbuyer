@@ -18,8 +18,11 @@ local args = {
     [1] = "pets",
     [2] = "summerfest_2025_coconut_friend",
     [3] = {
-        ["buy_count"] = 4
+        ["buy_count"] = 1
     }
 }
 
-game:GetService("ReplicatedStorage").API:FindFirstChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+while true do
+    game:GetService("ReplicatedStorage").API:FindFirstChild("ShopAPI/BuyItem"):InvokeServer(unpack(args))
+    wait() -- Add a short delay to avoid flooding the server (optional but recommended)
+end
